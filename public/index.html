@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Аргументы Онлайн</title>
+</head>
+<body>
+
+<h2>Поиск аргументов</h2>
+
+<input id="query" placeholder="Введите тему..." style="width:300px"/>
+<button onclick="search()">Искать</button>
+
+<h3>Аргументы:</h3>
+<div id="arguments" style="margin-bottom:30px; white-space: pre-wrap;"></div>
+
+<h3>Статьи:</h3>
+<div id="articles"></div>
+
+<!-- Подключаем Puter.js -->
+<script src="https://js.puter.com/v2/"></script>
+
+<script>
+async function search() {
+    const query = document.getElementById("query").value;
+
+    // 1️⃣ Получаем статьи с сервера
+    const resp = await fetch("/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+    });
+    const data = await resp.json();
+
+    // 2️⃣ Показываем статьи
+    const container = document.getElementById("articles");
+    container.innerHTML = "";
+    const combinedText = data.results
+        .slice(0, 2) // берем первые 2 статьи, чтобы Puter смог обработать
+        .map(a => {
+            container.innerHTML += `
+            <div style="margin-bottom:15px;">
+                <a href="${a.url}" target="_blank"><b>${a.title}</b></a>
+                <p>${a.content}</p>
+            </div>`;
+            return a.content;
+        }).join("\n\n");
+
+    // 3️⃣ Формируем аргументы через Puter.js
+    const puterResponse = await puter.ai.chat(
+        `Сделай краткие аргументы "за" и "против" по этой информации:\n${combinedText}`,
+        { model: "gpt-5.4" } // используем более мощную модель
+    );
+
+    console.log("Ответ Puter:", puterResponse);
+
+    // 4️⃣ Показываем аргументы
+    document.getElementById("arguments").innerText = puterResponse;
+}
+</script>
+
+</body>
+</html>
