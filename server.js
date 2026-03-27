@@ -15,9 +15,10 @@ app.get("/", (req, res) => {
 });
 
 // ====== КЛЮЧИ ======
-const TAVILY_API_KEY = "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";
-const GEMINI_API_KEY = "AIzaSyBprCqQ3arDYD0sWtd4zeV0f26KVyS9yZM";
+const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+console.log("GEMINI KEY:", GEMINI_API_KEY);
 // Инициализация Gemini
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
