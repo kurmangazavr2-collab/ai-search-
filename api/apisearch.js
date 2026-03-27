@@ -1,8 +1,9 @@
-// /api/search.js
 import axios from "axios";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (req.method !== "POST") {
+    return res.status(405).end();
+  }
 
   const { query } = req.body;
 
@@ -23,7 +24,6 @@ export default async function handler(req, res) {
     }));
 
     res.status(200).json({ results: articles });
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -1,8 +1,9 @@
-// /api/generate.js
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (req.method !== "POST") {
+    return res.status(405).end();
+  }
 
   const { query, position, text } = req.body;
 
@@ -15,10 +16,10 @@ export default async function handler(req, res) {
 Тема: ${query}
 Позиция: ${position || "нет"}
 
-На основе информации ниже сделай:
-1. 3 аргумента "ЗА"
-2. 3 аргумента "ПРОТИВ"
-3. Короткий вывод
+Сделай:
+- 3 аргумента ЗА
+- 3 аргумента ПРОТИВ
+- короткий вывод
 
 Текст:
 ${text}
@@ -28,7 +29,6 @@ ${text}
     const response = await result.response;
 
     res.status(200).json({ result: response.text() });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
