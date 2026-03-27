@@ -1,61 +1,200 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Аргументы Онлайн</title>
+<meta charset="UTF-8">
+<title>AI Аргументы</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f5f7fb;
+}
+
+/* 🔥 Верхний блок */
+.hero {
+    background: linear-gradient(135deg, #5f2cff, #8a3dff);
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.hero p {
+    opacity: 0.9;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 15px;
+    background: rgba(255,255,255,0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+/* Контейнер */
+.container {
+    max-width: 900px;
+    margin: -40px auto 40px;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+/* Блок преимуществ */
+.features {
+    background: #eaf7ec;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+/* Поля */
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* Кнопка */
+button {
+    width: 100%;
+    padding: 12px;
+    background: #6c4cff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #5a3ee0;
+}
+
+/* Результаты */
+.result {
+    margin-top: 20px;
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 10px;
+    white-space: pre-wrap;
+}
+
+/* Карточки статей */
+.article {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+</style>
 </head>
+
 <body>
 
-<h2>Поиск аргументов</h2>
+<div class="hero">
+    <h1>🎯 Помощник для построения аргументации</h1>
+    <p>Сильные аргументы с реальными примерами</p>
+    <div class="badge">✨ Работает на AI — ничего не нужно настраивать!</div>
+</div>
 
-<input id="query" placeholder="Введите тему..." style="width:300px"/>
-<button onclick="search()">Искать</button>
+<div class="container">
+
+<div class="features">
+    <b>✅ Полная версия с AI:</b>
+    <ul>
+        <li>AI работает автоматически</li>
+        <li>Реальные факты из интернета</li>
+        <li>Проверяемые источники</li>
+        <li>Аргументы «за» и «против»</li>
+    </ul>
+</div>
+
+<label>Введите тему:</label>
+<input id="query" placeholder="Например: влияние ИИ на работу">
+
+<label>Ваша позиция (необязательно):</label>
+<textarea id="position" placeholder="Например: ИИ полезен"></textarea>
+
+<button onclick="search()">Найти аргументы</button>
 
 <h3>Аргументы:</h3>
-<div id="arguments" style="margin-bottom:30px; white-space: pre-wrap;"></div>
+<div id="arguments" class="result"></div>
 
 <h3>Статьи:</h3>
 <div id="articles"></div>
 
-<!-- Подключаем Puter.js -->
+</div>
+
 <script src="https://js.puter.com/v2/"></script>
 
 <script>
 async function search() {
     const query = document.getElementById("query").value;
+    const position = document.getElementById("position").value;
 
-    // 1️⃣ Получаем статьи с сервера
+    document.getElementById("arguments").innerText = "Загрузка...";
+
+    // 🔹 Получаем статьи
     const resp = await fetch("/search", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({query})
     });
+
     const data = await resp.json();
 
-    // 2️⃣ Показываем статьи
     const container = document.getElementById("articles");
     container.innerHTML = "";
+
+    // 🔥 СЖИМАЕМ ТЕКСТ (ВАЖНО)
     const combinedText = data.results
-        .slice(0, 2) // берем первые 2 статьи, чтобы Puter смог обработать
+        .slice(0, 2)
         .map(a => {
             container.innerHTML += `
-            <div style="margin-bottom:15px;">
+            <div class="article">
                 <a href="${a.url}" target="_blank"><b>${a.title}</b></a>
                 <p>${a.content}</p>
             </div>`;
-            return a.content;
+            return a.content.substring(0, 500); // ограничение!
         }).join("\n\n");
 
-    // 3️⃣ Формируем аргументы через Puter.js
-    const puterResponse = await puter.ai.chat(
-        `Сделай краткие аргументы "за" и "против" по этой информации:\n${combinedText}`,
-        { model: "gpt-5.4" } // используем более мощную модель
-    );
+    // 🔥 УЛУЧШЕННЫЙ PROMPT
+    const prompt = `
+Тема: ${query}
+Позиция: ${position || "нет"}
 
-    console.log("Ответ Puter:", puterResponse);
+На основе информации ниже сделай:
 
-    // 4️⃣ Показываем аргументы
-    document.getElementById("arguments").innerText = puterResponse;
+1. 3 аргумента "ЗА"
+2. 3 аргумента "ПРОТИВ"
+3. Короткий вывод
+
+Пиши четко, коротко, без воды.
+
+Текст:
+${combinedText}
+`;
+
+    const result = await puter.ai.chat(prompt, {
+        model: "gpt-5.4"
+    });
+
+    document.getElementById("arguments").innerText = result;
 }
 </script>
 
