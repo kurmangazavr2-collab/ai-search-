@@ -41,7 +41,7 @@ app.post("/api/search", async (req, res) => {
     res.json({ results: articles });
 
   } catch (error) {
-    console.error(error.message);
+    console.error("Tavily error:", error.message);
     res.status(500).send("Ошибка поиска");
   }
 });
@@ -76,11 +76,11 @@ ${text}
     res.json({ result: textResult });
 
   } catch (err) {
-    console.error(err.message);
+    console.error("Gemini error:", err.message);
     res.status(500).send("Ошибка генерации аргументов");
   }
 });
 
-// Запуск сервера на порту Vercel
+// Запуск сервера
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

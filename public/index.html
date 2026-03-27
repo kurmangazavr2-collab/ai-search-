@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -62,35 +62,56 @@ async function search() {
   const articlesContainer = document.getElementById("articles");
   const argumentsContainer = document.getElementById("arguments");
 
+  if(!query.trim()) {
+    alert("Введите тему!");
+    return;
+  }
+
   argumentsContainer.innerText = "Загрузка...";
   articlesContainer.innerHTML = "";
 
-  // Получаем статьи
-  const resp = await fetch("/api/search", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({query})
-  });
-  const data = await resp.json();
+  try {
+    // Получаем статьи
+    const resp = await fetch("/api/search", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({query})
+    });
 
-  // Показываем статьи и объединяем текст
-  const combinedText = data.results.slice(0,2).map(a=>{
-    articlesContainer.innerHTML += `
-      <div class="article">
-        <a href="${a.url}" target="_blank"><b>${a.title}</b></a>
-        <p>${a.content}</p>
-      </div>`;
-    return a.content.substring(0,500);
-  }).join("\n\n");
+    if(!resp.ok) throw new Error("Ошибка поиска статей");
 
-  // Генерируем аргументы
-  const genResp = await fetch("/api/generate", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ query, position, text: combinedText })
-  });
-  const genData = await genResp.json();
-  argumentsContainer.innerText = genData.result || genData.error;
+    const data = await resp.json();
+
+    if(data.results.length === 0) {
+      articlesContainer.innerText = "Статьи не найдены";
+    }
+
+    // Показываем статьи и объединяем текст
+    const combinedText = data.results.slice(0,2).map(a=>{
+      articlesContainer.innerHTML += `
+        <div class="article">
+          <a href="${a.url}" target="_blank"><b>${a.title}</b></a>
+          <p>${a.content}</p>
+        </div>`;
+      return a.content.substring(0,500);
+    }).join("\n\n");
+
+    // Генерируем аргументы
+    const genResp = await fetch("/api/arguments", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ query, position, text: combinedText })
+    });
+
+    if(!genResp.ok) throw new Error("Ошибка генерации аргументов");
+
+    const genData = await genResp.json();
+    argumentsContainer.innerText = genData.result || "Нет результата";
+
+  } catch (err) {
+    console.error(err);
+    argumentsContainer.innerText = "Произошла ошибка: " + err.message;
+  }
 }
 </script>
 
